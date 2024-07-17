@@ -1,0 +1,69 @@
+$KB1 = "KB2919442"
+$KB2 = "KB2919355"
+$KB3 = "KB3151864"
+
+$FilePath = Get-Location
+$DownLoadPath = "$FilePath\SQLKB"
+
+$ExePath1 = $DownLoadPath + "\" + $KB1 + ".msu"
+$ExePath2 = $DownLoadPath + "\" + $KB2 + ".msu"
+$ExePath3 = $DownLoadPath + "\" + $KB3 + ".exe"
+
+$HotFixQuery1 = Get-HotFix | Where-Object {$_.HotFixId -eq $KB1} | Select-Object -First 1;
+if($HotFixQuery1 -eq $null) {
+	try {
+		Write-Host "Installing $KB1`n"
+		Start-Process -FilePath "wusa.exe" -ArgumentList "$ExePath1 /quiet /norestart" -Wait
+		Write-Host "Install Hotfix $KB1 successfully...`n"
+	}
+	catch {
+		#Remove-Item $DownLoadPath -force -recurse
+        throw "$KB1 installation failed!`n"
+	}
+}
+else
+{
+	Write-Host "Hotfix $KB1 already installed`n"
+}
+
+$HotFixQuery2 = Get-HotFix | Where-Object {$_.HotFixId -eq $KB2} | Select-Object -First 1;
+if($HotFixQuery2 -eq $null) {
+	try {
+		Write-Host "Installing $KB2`n"
+		Start-Process -FilePath "wusa.exe" -ArgumentList "$ExePath2 /quiet /norestart" -Wait
+		Write-Host "Install Hotfix $KB2 successfully...`n"
+	}
+	catch {
+		#Remove-Item $DownLoadPath -force -recurse
+        throw "$KB2 installation failed!`n"
+	}
+}
+else
+{
+	Write-Host "Hotfix $KB2 already installed`n"
+}
+
+$HotFixQuery3 = Get-HotFix | Where-Object {$_.HotFixId -eq $KB3} | Select-Object -First 1;
+if($HotFixQuery3 -eq $null) {
+	try {	
+		Write-Host "Installing $KB3`n"
+		Start-Process -FilePath $ExePath3 -ArgumentList "/q /norestart" -Wait
+		Write-Host "Install Hotfix $KB3 successfully...`n"
+	}
+	catch {
+		#Remove-Item $DownLoadPath -force -recurse
+        throw "$KB3 installation failed!`n"
+	}
+}
+else
+{
+	Write-Host "Hotfix $KB3 already installed`n"
+}
+
+#Remove-Item $DownLoadPath -force -recurse
+
+Install-WindowsFeature -Name Failover-Clustering –IncludeManagementTools
+Install-WindowsFeature Net-Framework-Core,NET-Framework-45-Features
+
+Write-Host "`nPlease restart the machine to complete customization for SQL Server VM template...`n"
+
